@@ -450,28 +450,12 @@ function Set-SChannelRegKeyValue
     }
     else
     {
-        # Update registry key
-        if ($Key -match "(.*:).*")
+        $currentKey = Get-Item -Path $fullSubKey -ErrorAction SilentlyContinue
+        if ($null -eq $currentKey)
         {
-            $root = $Matches[1]
+            $currentKey = New-Item -Path $fullSubKey
         }
-
-        $path = ($Key -replace $root, "").TrimStart('\')
-
-        $null = New-Item -Path $fullSubKey -Force
-
-        $regKey = (Get-Item -Path $root).OpenSubKey($path, $true)
-
-        if ((Test-Path -Path $fullSubKey) -eq $false)
-        {
-            $regKey = $regKey.CreateSubKey($SubKey)
-        }
-        else
-        {
-            $regKey = $regKey.OpenSubKey($SubKey, $true)
-        }
-
-        $null = $regKey.SetValue($Name, $Value, [Microsoft.Win32.RegistryValueKind]::DWORD)
+        $null = Set-ItemProperty -Path $fullSubKey -Name $Name -Value $Value -Type Dword -Force -PassThru
     }
 }
 
